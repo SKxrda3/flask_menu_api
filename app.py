@@ -72,12 +72,15 @@
 
 
 
-import logging
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, jwt_required
 from werkzeug.utils import secure_filename
 import os
 import time
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+
 
 from config import *
 from database import save_menu_to_database
