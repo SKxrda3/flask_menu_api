@@ -79,7 +79,6 @@ import os
 import time
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 
 from config import *

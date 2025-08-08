@@ -4,9 +4,22 @@ import os
 import logging
 from menu_parser import assign_categories, group_by_rows, parse_rows_to_menu
 
+# def get_fresh_ocr():
+#     """Get a fresh OCR instance to avoid state issues"""
+#     return PaddleOCR(use_angle_cls=True, lang='en')
+
+
 def get_fresh_ocr():
-    """Get a fresh OCR instance to avoid state issues"""
-    return PaddleOCR(use_angle_cls=True, lang='en')
+    return PaddleOCR(
+        use_angle_cls=True,
+        lang='en',
+        det_model_dir='./models/PP-OCRv5_server_det/',
+        rec_model_dir='./models/PP-OCRv5_server_rec/',
+        cls_model_dir='./models/PP-LCNet_x1_0_textline_ori/'  # use this if classifier is needed
+    )
+
+
+
 
 def preprocess_image(image_path):
     """Process image without modifying the original file"""
