@@ -11,7 +11,7 @@ from menu_parser import assign_categories, group_by_rows, parse_rows_to_menu
 
 def get_fresh_ocr():
     return PaddleOCR(
-        use_angle_cls=True,
+        use_angle_cls=False,
         lang='en',
         det_model_dir='./models/PP-OCRv5_server_det/',
         rec_model_dir='./models/PP-OCRv5_server_rec/',
@@ -156,7 +156,7 @@ def extract_boxes(image_path, conf_threshold=0.6):
 
 
 def process_menu_image(image_path, filename):
-    """Main function to process menu image and return extracted data"""
+
     logging.debug(f'Starting process_menu_image for {filename}')
     processed_image_path = preprocess_image(image_path)
     logging.debug(f'Image preprocessed: {processed_image_path}')
