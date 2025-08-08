@@ -7,3 +7,4 @@ Pillow
 Werkzeug
 gunicorn
 PaddlePaddle
+setuptools
