@@ -32,6 +32,8 @@ def get_fresh_ocr():
     return PaddleOCR(
         use_angle_cls=False,
         lang='en',
+        det_model_dir='models/PP-OCRv5_mobile_det/',
+        rec_model_dir='models/PP-OCRv5_mobile_rec/',
         
        
     )
