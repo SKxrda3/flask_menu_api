@@ -98,26 +98,21 @@
 
 
 
-
-# ========= TOP: Critical env vars (Paddle stable init) =========
 import os
-os.environ['PADDLE_DISABLE_SIGNAL'] = '1'  # Paddle ka signal handling disable
-os.environ['PADDLE_WITH_GLOO'] = '0'       # Distributed components band
+os.environ['PADDLE_DISABLE_SIGNAL'] = '1'
+os.environ['PADDLE_WITH_GLOO'] = '0'
 
-# ========= Imports =========
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, jwt_required
 import logging
 import time
 
-# Aapke local modules
 from config import *
 from database import save_menu_to_database
 from auth import login_user
 from ocr_processor import process_menu_image
 from utils import create_unique_filename
 
-# ========= Flask app setup =========
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -125,26 +120,18 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 jwt = JWTManager(app)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ========= Logging =========
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
-# ========= Optional: Model preloading (startup pe) =========
-# Yahan pe models ko warm-up/load kara do taaki first request slow na ho.
-# Agar ocr_processor ke andar hi lazy-load ho raha hai to isme sirf ek light warm-up call bhi kar sakte ho.
-@app.before_first_request
-def load_models():
-    try:
-        app.logger.info("Preloading OCR models...")
-        # Lightweight warmup: chhota dummy image path ya None ke saath safe call
-        # Agar process_menu_image None handle nahi karta, to ocr_processor me ek init function banao aur yahan call karo.
-        # Example:
-        # from ocr_processor import init_ocr_models
-        # init_ocr_models()
-        pass
-    except Exception as e:
-        app.logger.exception(f"Model preload failed: {e}")
+# Model load hone ke liye flag banate hain
+models_loaded = False
 
-# ========= Routes =========
+def load_models_once():
+    global models_loaded
+    if not models_loaded:
+        app.logger.info("Preloading OCR models... (Implement model init here)")
+        # Yahan apna model init code likho, agar koi initialization function hai to yahan call karo
+        models_loaded = True
+
 @app.route('/login', methods=['POST'])
 def login():
     return login_user()
@@ -153,6 +140,8 @@ def login():
 @jwt_required()
 def upload_menu():
     try:
+        load_models_once()
+
         app.logger.debug('Received request to /upload-menu')
 
         if 'image' not in request.files:
@@ -172,22 +161,18 @@ def upload_menu():
             app.logger.error('Empty filename.')
             return jsonify({'error': 'Empty filename.'}), 400
 
-        # Unique filename aur save
         filename = create_unique_filename(file.filename, vendor_id)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(image_path)
         app.logger.debug(f'File saved at: {image_path}')
 
-        # Process menu image
-        start = time.time()
+        start_time = time.time()
         menu_data = process_menu_image(image_path, filename)
-        app.logger.debug(f'Menu data processed: {menu_data} (took {time.time() - start:.2f}s)')
+        app.logger.debug(f'Menu data processed: {menu_data} (Processed in {time.time() - start_time:.2f}s)')
 
-        # vendor_id attach
         for entry in menu_data:
             entry["vendor_id"] = vendor_id
 
-        # DB save
         if menu_data:
             db_success, db_message = save_menu_to_database(menu_data)
             app.logger.debug(f'Database save success: {db_success}, message: {db_message}')
@@ -212,13 +197,5 @@ def upload_menu():
         app.logger.exception(f'Exception occurred in /upload-menu: {e}')
         return jsonify({'error': 'Internal server error occurred.'}), 500
 
-# ========= Local debug run =========
 if __name__ == "__main__":
-    # Local testing ke liye; Render pe gunicorn use hoga
     app.run(debug=True, host='0.0.0.0', port=5000)
-
-
-
-
-
-
