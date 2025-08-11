@@ -7,4 +7,4 @@ Werkzeug
 gunicorn
 PaddlePaddle
 setuptools
-easyocr
+easyocr==1.6.2
