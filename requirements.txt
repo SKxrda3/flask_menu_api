@@ -1,6 +1,5 @@
 Flask
 Flask-JWT-Extended
-paddleocr
 mysql-connector-python
 python-dotenv
 Pillow
@@ -8,3 +7,4 @@ Werkzeug
 gunicorn
 PaddlePaddle
 setuptools
+easyocr
